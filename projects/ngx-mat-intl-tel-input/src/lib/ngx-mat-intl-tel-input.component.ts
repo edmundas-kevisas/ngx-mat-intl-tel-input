@@ -42,36 +42,12 @@ import { FocusMonitor } from "@angular/cdk/a11y";
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
-import {
-  CanUpdateErrorState,
-  ErrorStateMatcher,
-  mixinErrorState,
-  _AbstractConstructor,
-  _Constructor,
-} from "@angular/material/core";
+import { ErrorStateMatcher } from "@angular/material/core";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatInput, MatInputModule } from "@angular/material/input";
 import { MatMenu, MatMenuModule } from "@angular/material/menu";
 import { Subject } from "rxjs";
 import { SearchPipe } from "./search.pipe";
-
-class NgxMatIntlTelInputBase {
-  readonly stateChanges = new Subject<void>();
-
-  constructor(
-    public _defaultErrorStateMatcher: ErrorStateMatcher,
-    public _parentForm: NgForm,
-    public _parentFormGroup: FormGroupDirective,
-    /** @docs-private */
-    public ngControl: NgControl
-  ) {}
-}
-
-declare type CanUpdateErrorStateCtor = _Constructor<CanUpdateErrorState> &
-  _AbstractConstructor<CanUpdateErrorState>;
-
-const _NgxMatIntlTelInputMixinBase: CanUpdateErrorStateCtor &
-  typeof NgxMatIntlTelInputBase = mixinErrorState(NgxMatIntlTelInputBase);
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -101,13 +77,7 @@ const _NgxMatIntlTelInputMixinBase: CanUpdateErrorStateCtor &
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NgxMatIntlTelInputComponent
-  extends _NgxMatIntlTelInputMixinBase
-  implements
-    OnInit,
-    OnDestroy,
-    DoCheck,
-    CanUpdateErrorState,
-    MatFormFieldControl<any>
+  implements OnInit, OnDestroy, MatFormFieldControl<any>
 {
   static nextId = 0;
 
@@ -118,6 +88,10 @@ export class NgxMatIntlTelInputComponent
   @Input() name: string | undefined;
   @Input() onlyCountries: Array<string> = [];
   @Input() errorStateMatcher: ErrorStateMatcher = new ErrorStateMatcher();
+
+  private _defaultErrorStateMatcher: ErrorStateMatcher;
+  private _parentForm: NgForm | null;
+  private _parentFormGroup: FormGroupDirective | null;
   @Input() enableSearch = false;
   @Input() searchPlaceholder: string | undefined;
   @Input() describedBy = "";
@@ -172,7 +146,9 @@ export class NgxMatIntlTelInputComponent
     @Optional() _parentFormGroup: FormGroupDirective,
     _defaultErrorStateMatcher: ErrorStateMatcher
   ) {
-    super(_defaultErrorStateMatcher, _parentForm, _parentFormGroup, ngControl);
+    this._defaultErrorStateMatcher = _defaultErrorStateMatcher;
+    this._parentForm = _parentForm;
+    this._parentFormGroup = _parentFormGroup;
     fm.monitor(elRef, true).subscribe((origin) => {
       if (this.focused && !origin) {
         this.onTouched();
@@ -220,10 +196,13 @@ export class NgxMatIntlTelInputComponent
     this.stateChanges.next(undefined);
   }
 
-  ngDoCheck(): void {
-    if (this.ngControl) {
-      this.updateErrorState();
-    }
+  get errorState(): boolean {
+    const isInvalid = this.ngControl?.invalid ?? false;
+    const isTouched = this.ngControl?.touched ?? false;
+    const isSubmitted =
+      this._parentFormGroup?.submitted || this._parentForm?.submitted || false;
+
+    return !!(isInvalid && (isTouched || isSubmitted));
   }
 
   public onPhoneNumberChange(): void {

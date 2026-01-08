@@ -110,18 +110,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "ngx-mat-intl-tel-input-tester:build"
+            "buildTarget": "ngx-mat-intl-tel-input-tester:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "ngx-mat-intl-tel-input-tester:build:production"
+              "buildTarget": "ngx-mat-intl-tel-input-tester:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "ngx-mat-intl-tel-input-tester:build"
+            "buildTarget": "ngx-mat-intl-tel-input-tester:build"
           }
         },
         "test": {
